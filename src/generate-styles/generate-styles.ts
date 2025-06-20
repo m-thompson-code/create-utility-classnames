@@ -1,4 +1,4 @@
-import { log } from "./utilities/log";
+import { log } from "../utilities/log";
 
 type Input = {
   variants: Record<string, string>;

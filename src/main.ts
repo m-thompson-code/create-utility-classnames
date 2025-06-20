@@ -26,6 +26,10 @@ console.log(
 const stylesheet = convertStyleNodesToCssStylesheet(styleNodes);
 console.log(stylesheet);
 
+// Ignore the client-side code below, this has nothing to do with the generated styles
+// This was leftover stuff from looking into another related idea
+// Later I'd like to edit this to consume the generated styles
+
 const style = document.createElement("style");
 style.textContent = `
     .has-color { color: red; }
