@@ -85,6 +85,11 @@ const splitByMatch = (items: StyleNode[]): [StyleNode[], StyleNode[]] => {
       const a = items[i];
       const b = items[j];
 
+      if (shallowEqual(a.variants, {})) {
+        log(a, a.variants);
+        throw new Error("Unexpected variants is empty");
+      }
+
       // if (areVariantsEqual(a, b) && a.cssProperty === b.cssProperty) {
       if (
         shallowEqual(a.variants, b.variants) &&
@@ -105,10 +110,11 @@ const splitByMatch = (items: StyleNode[]): [StyleNode[], StyleNode[]] => {
   const nonMatching: StyleNode[] = [];
 
   for (let i = 0; i < items.length; i++) {
-    // TODO: Allows for "shorter" classNames, but leads to random classNames
+    // TODO: Allows for "shorter" classNames, but leads to "random" classNames
     // that are short but should be included in another className
+    // Alternative is commented out below
     if (matchingCounts[i] && matchingCounts[i] > exceptionCounts[i]) {
-      // TODO: Avoids random classNames that are short that should be included in existing classNames
+      // TODO: Avoids "random" classNames that are short that should be included in existing classNames
       // but creates "longer" classNames
       // if (matchingCounts[i]) {// && matchingCounts[i] > exceptionCounts[i]) {
       matching.push(items[i]);
@@ -206,8 +212,7 @@ function removeByComparison<T>(
   return result;
 }
 
-// TODO: consideration, we already have "Style" token, so maybe the shape of the input should match the existing tokens
-
+// TODO: consideration, we already have "Style" token, so maybe the shape of the input should match the existing style tokens
 export const getInitialStyleNodes = (source: Input): StyleNode[] => {
   const styleNodes: StyleNode[] = [];
 
@@ -217,45 +222,84 @@ export const getInitialStyleNodes = (source: Input): StyleNode[] => {
       // The "origin" nodes are created in this loop for a single style's variants
       const id = getId();
 
-      // TODO: consider applying this step naturally in the other step where "leaf" nodes are created based on possibleVariants
-      Object.entries(instance.variants).map(
-        ([variantProperty, variantValue]) => {
-          const possibleVariants: Record<string, string> =
-            /* adding type here to avoid having to type assert for delete keyword below */ {
-              ...instance.variants,
-            };
-
-          // TODO: there should be a warning or something when possibleVariants is empty object
-          delete possibleVariants[variantProperty];
-
-          styleNodes.push({
-            cssProperty,
-            cssValue,
-            // Start off an array of one cause this array will grow to all possible combinations over time
-            // variants: [{
-            //   variantProperty,
-            //   variantValue,
-            // }],
-            variants: {
-              [variantProperty]: variantValue,
-            },
-            // TODO: This would be the only information that's missing from style tokens
-            possibleVariants,
-            id,
-          });
-        },
+      styleNodes.push(
+        ...new Array<StyleNode>(Object.keys(instance.variants).length).fill({
+          cssProperty,
+          cssValue,
+          variants: {},
+          possibleVariants: { ...instance.variants },
+          id,
+        }),
       );
+
+      // Object.entries(instance.variants).map(
+      //   ([variantProperty, variantValue]) => {
+      //     const possibleVariants: Record<string, string> =
+      //       /* adding type here to avoid having to type assert for delete keyword below */ {
+      //         ...instance.variants,
+      //       };
+
+      //     // TODO: there should be a warning or something when possibleVariants is empty object
+      //     delete possibleVariants[variantProperty];
+
+      //     styleNodes.push({
+      //       cssProperty,
+      //       cssValue,
+      //       // Start off an array of one cause this array will grow to all possible combinations over time
+      //       // variants: [{
+      //       //   variantProperty,
+      //       //   variantValue,
+      //       // }],
+      //       variants: {
+      //         // [variantProperty]: variantValue,
+      //       },
+      //       // TODO: This would be the only information that's missing from style tokens
+      //       possibleVariants,
+      //       id,
+      //     });
+      //   },
+      // );
+
+      // TODO: consider applying this step naturally in the other step where "leaf" nodes are created based on possibleVariants
+      // Object.entries(instance.variants).map(
+      //   ([variantProperty, variantValue]) => {
+      //     const possibleVariants: Record<string, string> =
+      //       /* adding type here to avoid having to type assert for delete keyword below */ {
+      //         ...instance.variants,
+      //       };
+
+      //     // TODO: there should be a warning or something when possibleVariants is empty object
+      //     delete possibleVariants[variantProperty];
+
+      //     styleNodes.push({
+      //       cssProperty,
+      //       cssValue,
+      //       // Start off an array of one cause this array will grow to all possible combinations over time
+      //       // variants: [{
+      //       //   variantProperty,
+      //       //   variantValue,
+      //       // }],
+      //       variants: {
+      //         // [variantProperty]: variantValue,
+      //       },
+      //       // TODO: This would be the only information that's missing from style tokens
+      //       possibleVariants,
+      //       id,
+      //     });
+      //   },
+      // );
     });
   }
 
   return styleNodes;
 };
 
-export const createChildStyleNodes = (styles: StyleNode[]): StyleNode[] => {
-  log("breakdownStyles -> ", "styles", styles);
-
-  if (!styles.length) {
-    return [];
+const getFinalizedStyleNodes = (
+  styles: StyleNode[],
+): [StyleNode[], StyleNode[]] => {
+  // Assumes that if any style nodes have an empty variants, all other style nodes would also have empty variants
+  if (shallowEqual(styles[0].variants, {})) {
+    return [[], styles];
   }
 
   // "uniques" are finalized, duplicates need to be processed further
@@ -266,7 +310,19 @@ export const createChildStyleNodes = (styles: StyleNode[]): StyleNode[] => {
     (duplicate) => !uniques.some((unique) => unique.id === duplicate.id),
   );
 
-  const _styles = _duplicates
+  return [uniques, _duplicates];
+};
+
+export const createChildStyleNodes = (styles: StyleNode[]): StyleNode[] => {
+  log("createChildStyleNodes -> ", "styles", styles);
+
+  if (!styles.length) {
+    return [];
+  }
+
+  const [uniques, duplicates] = getFinalizedStyleNodes(styles);
+
+  const _styles = duplicates
     .map((instance) => {
       return Object.entries(instance.possibleVariants).map(
         ([variantProperty, variantValue]) => {
@@ -315,7 +371,7 @@ export const createChildStyleNodes = (styles: StyleNode[]): StyleNode[] => {
     );
   });
 
-  log("breakdownStyles -> ", "uniques", uniques, "next", _);
+  log("createChildStyleNodes -> ", "uniques", uniques, "next", _);
 
   return [...uniques, ...createChildStyleNodes(_)];
 };
