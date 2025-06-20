@@ -322,7 +322,7 @@ export const createChildStyleNodes = (styles: StyleNode[]): StyleNode[] => {
 
   const [uniques, duplicates] = getFinalizedStyleNodes(styles);
 
-  const _styles = duplicates
+  const nestedChildStyleNodes = duplicates
     .map((instance) => {
       return Object.entries(instance.possibleVariants).map(
         ([variantProperty, variantValue]) => {
@@ -357,23 +357,32 @@ export const createChildStyleNodes = (styles: StyleNode[]): StyleNode[] => {
     })
     .flat();
 
-  const _: StyleNode[] = removeByComparison(_styles, (a, b) => {
-    return (
-      // Has to also match css style
-      a.cssProperty === b.cssProperty &&
-      a.cssValue === b.cssValue &&
-      // Check if combination of variants match
-      // areVariantsEqual(a, b) &&
-      shallowEqual(a.variants, b.variants) &&
-      // Check if style belongs to the same "instance"
-      // TODO: we could do this by adding an id to instances instead
-      shallowEqual(a.possibleVariants, b.possibleVariants)
-    );
-  });
+  const cleanedNestedChildStyleNodes: StyleNode[] = removeByComparison(
+    nestedChildStyleNodes,
+    (a, b) => {
+      return (
+        // Has to also match css style
+        a.cssProperty === b.cssProperty &&
+        a.cssValue === b.cssValue &&
+        // Check if combination of variants match
+        // areVariantsEqual(a, b) &&
+        shallowEqual(a.variants, b.variants) &&
+        // Check if style belongs to the same "instance"
+        // TODO: we could do this by adding an id to instances instead
+        shallowEqual(a.possibleVariants, b.possibleVariants)
+      );
+    },
+  );
 
-  log("createChildStyleNodes -> ", "uniques", uniques, "next", _);
+  log(
+    "createChildStyleNodes -> ",
+    "uniques",
+    uniques,
+    "next",
+    cleanedNestedChildStyleNodes,
+  );
 
-  return [...uniques, ...createChildStyleNodes(_)];
+  return [...uniques, ...createChildStyleNodes(cleanedNestedChildStyleNodes)];
 };
 
 // const breakdown = createChildStyleNodes(styles).sort((a, b) => {
