@@ -1,10 +1,10 @@
-import { isNode } from "./is-node"
+import { isNode } from "./is-node";
 
 export const log = (...args: Parameters<typeof console.log>) => {
-    if (isNode) {
-        // Skip, I don't want things showing up during my unit tests
-        return;
-    }
+  if (isNode) {
+    // Skip, I don't want things showing up during my unit tests
+    return;
+  }
 
-    console.log(args);
-}
+  console.log(args);
+};

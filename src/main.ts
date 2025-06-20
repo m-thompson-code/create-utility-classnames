@@ -1,7 +1,11 @@
 import "./style.css";
 
 import { input } from "./input";
-import { convertStyleNodesToCssStylesheet, createChildStyleNodes, getInitialStyleNodes } from "./generate-styles";
+import {
+  convertStyleNodesToCssStylesheet,
+  createChildStyleNodes,
+  getInitialStyleNodes,
+} from "./generate-styles";
 // import { buildTree } from "./stuff";
 // import { output } from "./output";
 
@@ -11,9 +15,13 @@ const initialStyleNodes = getInitialStyleNodes(input);
 console.log(initialStyleNodes);
 
 const styleNodes = createChildStyleNodes(initialStyleNodes);
-console.log(styleNodes.sort((a, b) => {
-  return `${a.cssProperty}-${a.cssValue}`.localeCompare(`${b.cssProperty}-${b.cssValue}`)
-}));
+console.log(
+  styleNodes.sort((a, b) => {
+    return `${a.cssProperty}-${a.cssValue}`.localeCompare(
+      `${b.cssProperty}-${b.cssValue}`,
+    );
+  }),
+);
 
 const stylesheet = convertStyleNodesToCssStylesheet(styleNodes);
 console.log(stylesheet);
@@ -32,17 +40,23 @@ style.textContent = `
   `;
 document.head.appendChild(style);
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML += '<div class="has-color">Hello World</div>';
-document.querySelector<HTMLDivElement>("#app")!.innerHTML += '<div class="has-background">Hello World</div>';
-document.querySelector<HTMLDivElement>("#app")!.innerHTML += "<br />";
-document.querySelector<HTMLDivElement>("#app")!.innerHTML += '<div class="has-color__AND__has-background">Hello World</div>';
-document.querySelector<HTMLDivElement>("#app")!.innerHTML += '<div class="has-color has-background">Hello World</div>';
-document.querySelector<HTMLDivElement>("#app")!.innerHTML += "<br />";
-document.querySelector<HTMLDivElement>("#app")!.innerHTML += '<div class="has-color__AND__has-background override">Hello World</div>';
-document.querySelector<HTMLDivElement>("#app")!.innerHTML += '<div class="has-color has-background override">Hello World</div>';
+document.querySelector<HTMLDivElement>("#app")!.innerHTML +=
+  '<div class="has-color">Hello World</div>';
+document.querySelector<HTMLDivElement>("#app")!.innerHTML +=
+  '<div class="has-background">Hello World</div>';
 document.querySelector<HTMLDivElement>("#app")!.innerHTML += "<br />";
 document.querySelector<HTMLDivElement>("#app")!.innerHTML +=
-    '<div class="has-color has-background pretty-please-override">Hello World</div>';
+  '<div class="has-color__AND__has-background">Hello World</div>';
+document.querySelector<HTMLDivElement>("#app")!.innerHTML +=
+  '<div class="has-color has-background">Hello World</div>';
+document.querySelector<HTMLDivElement>("#app")!.innerHTML += "<br />";
+document.querySelector<HTMLDivElement>("#app")!.innerHTML +=
+  '<div class="has-color__AND__has-background override">Hello World</div>';
+document.querySelector<HTMLDivElement>("#app")!.innerHTML +=
+  '<div class="has-color has-background override">Hello World</div>';
+document.querySelector<HTMLDivElement>("#app")!.innerHTML += "<br />";
+document.querySelector<HTMLDivElement>("#app")!.innerHTML +=
+  '<div class="has-color has-background pretty-please-override">Hello World</div>';
 
 //   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 //   <div>

@@ -6,9 +6,9 @@ import { input as inputPinkPurple } from "./samples/input-pink-purple";
 import { output as outputPinkPurple } from "./samples/output-pink-purple";
 
 test("results in regular output", () => {
-    expect(GenerateStyles(inputRegular)).toStrictEqual(outputRegular);
+  expect(GenerateStyles(inputRegular)).toStrictEqual(outputRegular);
 });
 
 test("results in pink purple output", () => {
-    expect(GenerateStyles(inputPinkPurple)).toStrictEqual(outputPinkPurple);
+  expect(GenerateStyles(inputPinkPurple)).toStrictEqual(outputPinkPurple);
 });
